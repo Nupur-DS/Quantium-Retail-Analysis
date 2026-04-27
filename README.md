@@ -69,79 +69,31 @@ Two datasets loaded and inspected:
 ### 3. 🧹 Data Preprocessing
 
 #### Date Fix
-```python
-transaction_df['DATE'] = pd.to_datetime(
-    transaction_df['DATE'], origin='1899-12-30', unit='D'
-)
-```
 Converted numeric Excel serial to proper datetime format.
 
 #### Missing Date Investigation
 Built a complete date range and merged to find gaps:
-```python
-all_dates = pd.date_range(start='2018-07-01', end='2019-03-31')
-transactions_by_date = pd.merge(all_dates_df, transactions_by_date,
-                                on='DATE', how='left')
-```
+
 **Finding:** Only December 25, 2018 had zero transactions — Christmas Day store closure. No data quality issue.
 
 #### Outlier Detection & Removal
 Boxplot revealed one customer (card 226000) purchasing 200 units in a single transaction — identified as a non-retail commercial buyer and removed.
-```python
-transaction_df = transaction_df[transaction_df['LYLTY_CARD_NBR'] != 226000]
-```
-
----
-
 ### 4. ⚙️ Feature Engineering
 
 #### Packet Size Extraction (Regex)
-```python
-transaction_df['packet_size'] = transaction_df['PROD_NAME'].str.extract(r'(\d+)[gG]')
-```
 Extracted gram weight from product name strings across 114 unique products.
 
 #### Product Name Cleaning
-```python
-transaction_df['PROD_NAME_CLEAN'] = (
-    transaction_df['PROD_NAME']
-    .str.replace(r'\d+', '', regex=True)
-    .str.replace(r'[^a-zA-Z\s]', '', regex=True)
-    .str.strip()
-)
-```
+Cleaned product name using regex
 
 #### Brand Name Extraction
 Extracted first word of cleaned product name as brand:
-```python
-transaction_df['brand_name'] = transaction_df['PROD_NAME_CLEAN'].str.split().str[0]
-```
 
 #### Brand Standardisation
 Identified and merged 8 duplicate/abbreviated brand names:
-```python
-brand_mapping = {
-    'Burger' : 'Smiths',
-    'Dorito' : 'Doritos',
-    'Infzns' : 'Infuzions',
-    'NCC'    : 'Natural',
-    'Snbts'  : 'Sunbites',
-    'WW'     : 'Woolworths',
-    'Smith'  : 'Smiths',
-    'RRD'    : 'Red Rock Deli',
-}
-transaction_df['brand_name'] = transaction_df['brand_name'].replace(brand_mapping)
-```
 
-#### Salsa Removal
+#### Data Cleaning
 Filtered non-chip products from the dataset:
-```python
-transaction_df = transaction_df[
-    ~transaction_df['PROD_NAME'].str.contains('salsa', case=False)
-]
-```
-
----
 
 ### 5. 📊 Customer Segment Analysis
 
@@ -160,13 +112,16 @@ After merging transaction data with purchase behaviour data on loyalty card numb
 
 ### 6. 📋 Executive Dashboard
 
-A full matplotlib dashboard built at the end of the notebook containing:
-- 5 KPI cards (Total Revenue, Transactions, Customers, Brands, Avg Price)
-- Total Sales by Segment (horizontal bar)
-- Brand Market Share (donut chart)
-- Avg Spend per Customer by Lifestage (grouped bar — all segments)
-- Avg Price per Unit by Customer Type
-- Daily Transaction Volume trend
+## 📊 Dashboard Preview
+
+### 🔹 Full Dashboard
+![Dashboard](./screenshots/dashboard.png)
+
+### 🔹 Segment Analysis
+![Segment Analysis](./screenshots/segment_analysis.png)
+
+### 🔹 Brand Analysis
+![Brand Analysis](./screenshots/brand_analysis.png)
 
 ---
 
